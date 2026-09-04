@@ -1,0 +1,132 @@
+---
+title: 'Lab: Class One Survey Analysis'
+output:
+  html_document:
+    
+---
+
+
+### **INSTRUCTIONS**
+####  **Complete all tasks 1-7 using reproducible coding practices (annotation of all code). Use R syntax to solve all problems (i.e. do not manually change values/variables in datasets or check them manually to make sure things are correct except as a double or triple check). Please cut and paste each problem before each R markdown chunk and annotate your code within the chunks.**
+
+
+##### 1. Import class one survey data from our Github site (https://github.com/kijohnson/Advanced-Data-Analysis) (The dataset is called 'Class 1 Survey Fall 2026.csv'), calling the R dataframe that you create *C1survey*.
+```{r}
+C1survey <- read_csv("https://raw.githubusercontent.com/kijohnson/Advanced-Data-Analysis/refs/heads/main/Class%201%20Survey%20Fall%202026.csv")
+```
+
+##### 2. Determine: **a.** the number of observations (i.e. the number of people who filled out the survey) and **b.** the number of variables in the dataframe.    
+```{r}
+#a. 27 people filled the questionnaire 
+#b. There are 27 variables in the data frame 
+
+```
+
+
+##### 3. **a.** Rename the column variables to something shorter and that is descriptive of what the variable is about (for example *like_dogs* for the 'Do you like dogs?' question variable) and **b.** Display that they are renamed. **Hints**: You can use either the rename_with function or the names function. The list of names for time is:
+
+```{r, echo=TRUE}
+c("id", "like_cats", "like_dogs", "have_desert", "slogan", "fav_day", "larkORowl", "fav_food", "fav_drink", "fav_season", "fav_month", "hobby", "program", "specialization", "stat_software", "R_exp", "coding_comfort", "coding_length", "top_three", "public_health_interest", "fav_num", "bday", "bmonth", "country", "state", "city",  "highest_educ_level")
+```
+#Renaming the columns 
+names(C1survey) <- c(
+  "id", "like_cats", "like_dogs", "have_desert", "slogan",
+  "fav_day", "larkORowl", "fav_food", "fav_drink", "fav_season",
+  "fav_month", "hobby", "program", "specialization", "stat_software",
+  "R_exp", "coding_comfort", "coding_length", "top_three",
+  "public_health_interest", "fav_num", "bday", "bmonth", "country",
+  "state", "city", "highest_educ_level"
+)
+
+#Verifying that the renaming worked 
+names(C1survey)
+
+
+##### 4. Write code to determine and display the number of factor, integer, numerical, and character variables there are in the *C1survey* dataset. **Suggestion**: Try to ask ChatGPT for a solution if you are unsure. There is a really short answer to this but we want to see what students come up with!
+```table(sapply(C1survey, class))
+```
+
+##### 5. **a.** Using code, check the *bday* and *bmonth* variables for any unusual or missing values (**hint**: use table function). If you find any, **b.** describe what you will do with the unusual values in a comment before or immediately following the code that does it, and **c.** after you have cleaned up any unusual values, find the median bday and month. *Note: please make sure that your bday and month variables are numeric before doing statistics
+
+```{r}
+table(C1survey$bday, useNA = "ifany")
+table(C1survey$bmonth, useNA = "ifany")
+```
+The bday variable has one unusual value (30-Nov), which appears to be a date rather than a day, and one missing value (NA). The bmonth variable has inconsistent entries, with some respondents using numeric values and others using month names. It also contains one missing value (NA)
+
+```{r}
+# Clean the unusual values. The bday value "30-Nov" is converted to 30 because
+# the question asks for the birth day only. Month names are converted to their
+# corresponding numeric month values so that all values can be analyzed numerically.
+
+C1survey$bday[C1survey$bday == "30-Nov"] <- "30"
+
+C1survey$bmonth[C1survey$bmonth == "February"] <- "2"
+C1survey$bmonth[C1survey$bmonth == "March"] <- "3"
+C1survey$bmonth[C1survey$bmonth == "May"] <- "5"
+C1survey$bmonth[C1survey$bmonth == "November"] <- "11"
+```
+#Making sure bday and bmonth are numeric variables before running statistics 
+
+```{r}
+C1survey$bday <- as.numeric(C1survey$bday)
+C1survey$bmonth <- as.numeric(C1survey$bmonth)
+```
+
+```{r}
+class(C1survey$bday)
+class(C1survey$bmonth)
+```
+
+checking the median of bday and bmonth 
+```{r}
+median(C1survey$bday, na.rm = TRUE)
+median(C1survey$bmonth, na.rm = TRUE)
+```
+
+##### 6. **a.** Create a new variable called *bseason* that gives the season according to Northern Meteorological season in which respondents were born (winter = 12/1 to 2/29, spring = 3/1 to 5/31, summer = 6/1 to 8/31, fall = 9/1 to 11/30). **b**. Using the table function, print a table of Seasons in the columns and bmonths in the rows that allows you to check that the coding is correct **c**. Sum the columns using the addmargins function to answer the question of how many classmates were born in each season? Include your answer in the code. 
+
+#Creating bseason
+```{r}
+# Create bseason based on Northern Meteorological seasons.
+# Winter = December, January, February
+# Spring = March, April, May
+# Summer = June, July, August
+# Fall = September, October, November
+
+C1survey$bseason <- ifelse(C1survey$bmonth %in% c(12, 1, 2), "Winter",
+                     ifelse(C1survey$bmonth %in% c(3, 4, 5), "Spring",
+                     ifelse(C1survey$bmonth %in% c(6, 7, 8), "Summer",
+                     ifelse(C1survey$bmonth %in% c(9, 10, 11), "Fall", NA))))
+```
+
+#Printing the table of seasons 
+table(C1survey$bseason, useNA = "ifany")
+
+Fall: 13 classmates
+Spring: 4 classmates
+Summer: 5 classmates
+Winter: 4 classmates
+1 missing birth month
+
+#Creating the table with months in rows and seasons in columns 
+
+```{r}
+table(C1survey$bmonth, C1survey$bseason, useNA = "ifany")
+```
+
+##### 7. Pick your favorite variable or variables to analyze, come up with a question you want to answer with that variable or variables, generate the code, and provide an answer to your question. Describe what you did using comments (i.e. #'s).
+
+
+```{r}
+# Question: What is the most popular favorite day of the week among my classmates?
+# I used the table() function to count the number of classmates
+# who selected each day of the week.
+# The results show that Friday and Saturday are tied for the
+# highest number of responses, with 8 classmates each.
+
+day_counts <- table(C1survey$fav_day, useNA = "ifany")
+day_counts
+```
+
+Friday and Saturday were tied as the most popular favorite days, with 8 classmates selecting each day.
